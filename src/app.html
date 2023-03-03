@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Menti Bot</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@2.51.3/dist/full.css" rel="stylesheet" type="text/css"/>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2/dist/tailwind.min.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<div class="h-screen grid place-items-center">
+    <div class="bg-neutral p-10 rounded-box shadow-2xl w-96">
+        <div class="form-control w-full">
+            <label class="label">
+                <span class="label-text text-xl">Type</span>
+            </label>
+            <select class="select select-bordered" name="type" id="type">
+                <option selected>Multiple Choice</option>
+                <option>Word Cloud</option>
+                <option>Open Ended</option>
+                <option>Scales</option>
+            </select>
+        </div>
+
+        <div class="form-control w-full mt-5">
+            <label class="label">
+                <span class="label-text text-xl">Data</span>
+            </label>
+            <div class="form-control w-full">
+                <input type="number" class="input input-md input-bordered" id="select" placeholder="Index">
+            </div>
+
+            <div class="form-control w-full mt-2">
+                <input type="text" class="input input-md input-bordered" id="text" placeholder="Text">
+            </div>
+
+            <div class="form-control w-full mt-2">
+                <input type="number" class="input input-md input-bordered" id="percent" placeholder="Percent">
+            </div>
+        </div>
+
+        <div class="form-control w-full mt-5">
+            <label class="label">
+                <span class="label-text text-xl">Finally</span>
+            </label>
+            <input type="text" class="input" id="url" placeholder="Menti ID or URL">
+            <div class="grid grid-cols-5 mt-2">
+                <input type="number" placeholder="Bot count" id="bot_count" class="input col-span-3">
+                <button class="btn btn-primary {submitLoading} col-span-2 ml-2" id="submit">Submit</button>
+            </div>
+            <p class="text-center text-success mt-5">
+                Voted: <span id="success">0</span> of <span class="bot_count">0</span>
+            </p>
+            <p class="text-center text-error mt-2">
+                Failed: <span id="failed">0</span> of <span class="bot_count">0</span>
+            </p>
+        </div>
+    </div>
+</div>
+<script>
+    const dropdown_item = document.getElementById("type");
+    const select_item = document.getElementById("select");
+    const text_item = document.getElementById("text");
+    const percent_item = document.getElementById("percent");
+
+    const url_item = document.getElementById("url");
+    const bot_count_item = document.getElementById("bot_count");
+    const submit_item = document.getElementById("submit");
+
+    const success_counter = document.getElementById("success");
+    const failed_counter = document.getElementById("failed");
+    const bot_count_counter = document.getElementsByClassName("bot_count");
+
+    let type = dropdown_item.value;
+    let select = select_item.value;
+    let text = text_item.value;
+    let percent = percent_item.value;
+
+    let url = url_item.value;
+    let bot_count = bot_count_item.value;
+
+    let success_count = 0;
+    let fail_count = 0;
+
+    function updateOptions() {
+        type = dropdown_item.value;
+
+        switch (type) {
+            case "Multiple Choice":
+                select_item.parentElement.classList.remove("hidden");
+                text_item.parentElement.classList.add("hidden");
+                percent_item.parentElement.classList.add("hidden");
+                break;
+            case "Word Cloud":
+                select_item.parentElement.classList.remove("hidden");
+                text_item.parentElement.classList.remove("hidden");
+                percent_item.parentElement.classList.add("hidden");
+                break;
+            case "Open Ended":
+                select_item.parentElement.classList.add("hidden");
+                text_item.parentElement.classList.remove("hidden");
+                percent_item.parentElement.classList.add("hidden");
+                break;
+            case "Scales":
+                select_item.parentElement.classList.remove("hidden");
+                text_item.parentElement.classList.add("hidden");
+                percent_item.parentElement.classList.remove("hidden");
+                break;
+        }
+    }
+
+    updateOptions();
+    dropdown_item.onchange = updateOptions;
+
+    function updateSelect() {
+        select = select_item.value;
+    }
+
+    select_item.onchange = updateSelect;
+
+    function updateText() {
+        text = text_item.value;
+    }
+
+    text_item.onchange = updateText;
+
+    function updatePercent() {
+        percent = percent_item.value;
+    }
+
+    percent_item.onchange = updatePercent;
+
+    function updateUrl() {
+        url = url_item.value;
+    }
+
+    url_item.onchange = updateUrl;
+
+    function updateBotCount() {
+        success_count = 0;
+        fail_count = 0;
+        bot_count = bot_count_item.value;
+        updateValues();
+    }
+
+    bot_count_item.onchange = updateBotCount;
+    bot_count_item.oninput = updateBotCount;
+
+    async function sendSingle(body) {
+        const response = await fetch(`${document.URL}api`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(body),
+            redirect: 'follow'
+        })
+            .then(res => res.json())
+            .catch(err => console.log(err));
+
+        if (response) {
+            if (response.status === "success") {
+                success_count++;
+            } else {
+                fail_count++;
+            }
+        } else {
+            fail_count++;
+        }
+        updateValues();
+
+        return response;
+    }
+
+    function updateValues() {
+        success_counter.innerText = success_count.toString();
+        failed_counter.innerText = fail_count.toString();
+        bot_count_counter[0].innerText = bot_count.toString();
+        bot_count_counter[1].innerText = bot_count.toString();
+
+        if(success_count > 0) success_counter.parentElement.classList.remove("hidden")
+        else success_counter.parentElement.classList.add("hidden")
+
+        if(fail_count > 0) failed_counter.parentElement.classList.remove("hidden")
+        else failed_counter.parentElement.classList.add("hidden")
+
+        if (success_count + fail_count >= bot_count) {
+            submit_item.classList.remove("loading");
+        }
+    }
+    updateValues();
+
+    async function onSubmit() {
+        submit_item.classList.add("loading");
+
+        success_count = 0;
+        fail_count = 0;
+
+        if (!bot_count || bot_count < 1) bot_count = 1;
+        if (!select) select = 0;
+        if (!percent) percent = 0;
+        if (!text) text = "";
+        if (!url) return;
+        url = url.replaceAll(" ", "")
+        let parsedType = type.toLowerCase().replaceAll(" ", "_");
+
+        const data = {
+            selections: [
+                {
+                    select: select,
+                    percent: percent,
+                    text: text
+                }
+            ]
+        }
+
+        const body = {
+            type: parsedType,
+            data: data,
+            input: url
+        }
+
+        for (let i = 0; i < bot_count; i++) {
+            sendSingle(body);
+        }
+    }
+
+    submit_item.onclick = onSubmit;
+</script>
+</body>
+</html>

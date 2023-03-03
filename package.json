@@ -1,0 +1,22 @@
+{
+  "name": "simple-menti-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon --ext *"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "browserify": "^17.0.0",
+    "chromedriver": "^110.0.0",
+    "express": "^4.18.2",
+    "interflow": "^1.0.2",
+    "nodemon": "^2.0.21",
+    "selenium-webdriver": "^4.8.1",
+    "socket.io": "^4.6.1"
+  }
+}
