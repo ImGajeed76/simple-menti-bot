@@ -145,12 +145,14 @@ app.post('/api', async (req, res) => {
 
     if (!type || !input || !data) return res.send({
         status: "error",
+        code: 400,
         error: 'Invalid request',
         body: JSON.stringify(req.body),
     });
 
     if (type !== "multiple_choice" && type !== "word_cloud" && type !== "open_ended" && type !== "scales") return res.send({
         status: "error",
+        code: 400,
         error: 'Invalid type',
         body: JSON.stringify(req.body),
     });
@@ -166,12 +168,14 @@ app.post('/api', async (req, res) => {
 
         res.send({
             status: "success",
+            code: 200,
             body: JSON.stringify(req.body),
         });
     } catch (e) {
         console.error(e)
         res.send({
             status: "error",
+            code: 500,
             error: 'Runtime error',
             body: JSON.stringify(e),
         });
