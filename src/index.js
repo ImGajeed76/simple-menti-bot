@@ -1,17 +1,20 @@
-const {Builder, By} = require("selenium-webdriver");
+const {Builder, By, Capabilities} = require("selenium-webdriver");
 const {Options, ServiceBuilder} = require("selenium-webdriver/chrome");
 const chromedriver = require('chromedriver');
 
-const {Interflow} = require('interflow');
-const interflow = new Interflow(process.stdin, process.stdout);
-
 const bodyParser = require("express");
-const express = require('express');
-const app = express();
+const app = require('express')();
 app.use(bodyParser.json());
+
+const port = process.env.PORT || 3000;
+const chromedriver_path = process.env.CHROMEDRIVER || chromedriver.path;
 
 const lerp = (a, b, f) => {
     return a * (1.0 - f) + (b * f);
+}
+
+const sleep = (ms) => {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 class MentiBotDriver {
@@ -25,28 +28,34 @@ class MentiBotDriver {
         this.type = type;
         this.driver = new Builder()
             .forBrowser('chrome')
+            //.usingServer('http://localhost:4444/wd/hub')
             .setChromeService(
-                new ServiceBuilder(chromedriver.path)
+                new ServiceBuilder(chromedriver_path)
             )
             .setChromeOptions(
-                new Options().addArguments("--headless", "incognito", "--disable-notifications")
+                new Options().addArguments("--headless", "incognito", "--disable-notifications", "--no-sandbox", "--disable-dev-shm-usage")
             )
+            .withCapabilities(Capabilities.chrome())
             .build();
 
         this.driver.manage().setTimeouts({implicit: 10000});
+    }
+
+    async test() {
+        await this.driver.get("https://google.com");
     }
 
     async open(input) {
         input = input.replaceAll(' ', '');
         if (input.startsWith('http')) {
             await this.driver.get(input);
-            await Interflow.sleep(1000);
+            await sleep(1000);
         } else {
             await this.driver.get(`https://www.menti.com`);
-            await Interflow.sleep(100);
+            await sleep(1000);
             await this.driver.findElement(By.id('enter-vote-key')).sendKeys(input);
             await this.driver.findElement(By.id('enter-vote-key')).submit();
-            await Interflow.sleep(1000);
+            await sleep(1000);
         }
     }
 
@@ -68,7 +77,7 @@ class MentiBotDriver {
                 await this.voteScales(data);
                 break;
             default:
-                interflow.error('Invalid type: ' + this.type)
+                console.error('Invalid type: ' + this.type)
                 break;
         }
     }
@@ -124,7 +133,7 @@ class MentiBotDriver {
 }
 
 app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/src/app.html');
+    res.sendFile(__dirname + '/side.html');
 });
 
 app.post('/api', async (req, res) => {
@@ -150,7 +159,7 @@ app.post('/api', async (req, res) => {
         await bot.vote(data);
         await bot.submit();
 
-        await Interflow.sleep(1000);
+        await sleep(1000);
         await bot.close();
 
         res.send({
@@ -158,7 +167,7 @@ app.post('/api', async (req, res) => {
             body: JSON.stringify(req.body),
         });
     } catch (e) {
-        interflow.error(e)
+        console.error(e)
         res.send({
             status: "error",
             error: 'Runtime error',
@@ -167,6 +176,17 @@ app.post('/api', async (req, res) => {
     }
 });
 
-app.listen(3000, () => {
-    interflow.info('Server started on http://localhost:3000')
+app.listen(port, async () => {
+    console.log(`Chromedriver path: ${chromedriver_path}`)
+    console.info('Server started on http://localhost:' + port);
+
+    try {
+        const bot = new MentiBotDriver("multiple_choice");
+        await bot.test();
+        await bot.close();
+        console.info('Selenium works');
+    } catch (e) {
+        console.error('Selenium does not work');
+        throw e;
+    }
 });
