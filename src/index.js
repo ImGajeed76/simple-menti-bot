@@ -9,6 +9,8 @@ app.use(bodyParser.json());
 const port = process.env.PORT || 3000;
 const chromedriver_path = process.env.CHROMEDRIVER || chromedriver.path;
 
+process.setMaxListeners(15);
+
 const lerp = (a, b, f) => {
     return a * (1.0 - f) + (b * f);
 }

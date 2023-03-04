@@ -219,8 +219,13 @@
             input: url
         }
 
+        let requests = [];
         for (let i = 0; i < bot_count; i++) {
-            sendSingle(body);
+            requests.push(sendSingle(body));
+            if (requests.length >= 10) {
+                await Promise.all(requests);
+                requests = [];
+            }
         }
     }
 
