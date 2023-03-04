@@ -143,16 +143,14 @@ app.post('/api', async (req, res) => {
     const input = req.body.input;
     const data = req.body.data;
 
-    if (!type || !input || !data) return res.send({
+    if (!type || !input || !data) return res.status(400).send({
         status: "error",
-        code: 400,
         error: 'Invalid request',
         body: JSON.stringify(req.body),
     });
 
-    if (type !== "multiple_choice" && type !== "word_cloud" && type !== "open_ended" && type !== "scales") return res.send({
+    if (type !== "multiple_choice" && type !== "word_cloud" && type !== "open_ended" && type !== "scales") return res.status(400).send({
         status: "error",
-        code: 400,
         error: 'Invalid type',
         body: JSON.stringify(req.body),
     });
@@ -166,16 +164,14 @@ app.post('/api', async (req, res) => {
         await sleep(1000);
         await bot.close();
 
-        res.send({
+        res.status(200).send({
             status: "success",
-            code: 200,
             body: JSON.stringify(req.body),
         });
     } catch (e) {
         console.error(e)
-        res.send({
+        res.status(500).send({
             status: "error",
-            code: 500,
             error: 'Runtime error',
             body: JSON.stringify(e),
         });
