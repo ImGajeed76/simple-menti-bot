@@ -165,9 +165,13 @@ app.post('/api', async (req, res) => {
 
     try {
         const bot = new MentiBotDriver(type);
+        console.log("bot created");
         await bot.open(input);
+        console.log("bot opened");
         await bot.vote(data);
+        console.log("bot voted");
         await bot.submit();
+        console.log("bot submitted");
 
         await sleep(1000);
         await bot.close();
