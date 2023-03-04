@@ -139,21 +139,29 @@ app.get('/', (req, res) => {
 });
 
 app.post('/api', async (req, res) => {
+    console.log("kommt ja rein");
+
     const type = req.body.type;
     const input = req.body.input;
     const data = req.body.data;
 
-    if (!type || !input || !data) return res.status(400).send({
-        status: "error",
-        error: 'Invalid request',
-        body: JSON.stringify(req.body),
-    });
+    if (!type || !input || !data) {
+        console.log("return 1");
+        return res.status(400).send({
+            status: "error",
+            error: 'Invalid request',
+            body: JSON.stringify(req.body),
+        });
+    }
 
-    if (type !== "multiple_choice" && type !== "word_cloud" && type !== "open_ended" && type !== "scales") return res.status(400).send({
-        status: "error",
-        error: 'Invalid type',
-        body: JSON.stringify(req.body),
-    });
+    if (type !== "multiple_choice" && type !== "word_cloud" && type !== "open_ended" && type !== "scales") {
+        console.log("return 2");
+        return res.status(400).send({
+            status: "error",
+            error: 'Invalid type',
+            body: JSON.stringify(req.body),
+        });
+    }
 
     try {
         const bot = new MentiBotDriver(type);
@@ -164,11 +172,14 @@ app.post('/api', async (req, res) => {
         await sleep(1000);
         await bot.close();
 
+        console.log("return 3 (gut)");
+
         res.status(200).send({
             status: "success",
             body: JSON.stringify(req.body),
         });
     } catch (e) {
+        console.log("return 4 (error)");
         console.error(e)
         res.status(500).send({
             status: "error",
