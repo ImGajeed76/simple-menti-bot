@@ -222,7 +222,7 @@
         let requests = [];
         for (let i = 0; i < bot_count; i++) {
             requests.push(sendSingle(body));
-            if (requests.length >= 10) {
+            if (requests.length >= 5) {
                 await Promise.all(requests);
                 requests = [];
             }
