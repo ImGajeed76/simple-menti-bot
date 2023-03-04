@@ -146,6 +146,8 @@
     bot_count_item.oninput = updateBotCount;
 
     async function sendSingle(body) {
+        console.log("Sending request to", `${document.URL}api`);
+
         const response = await fetch(`${document.URL}api`, {
             method: "POST",
             headers: {
